@@ -10,7 +10,7 @@
 // Global Variables
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen;
 
 // Game
 bool gaming = true;
@@ -30,7 +30,8 @@ itemDoorOpener = 1,
 itemInvisObject = 2,
 itemMilk = 3,
 itemPlotholer = 4,
-itemSMedal = 5
+itemSMedal = 5,
+itemMoney = 6
 };
 const char *gmItemName[] = {
 "Nothing",				//1
@@ -38,7 +39,8 @@ const char *gmItemName[] = {
 "Invisible Object",
 "Milk",
 "The Plotholer",
-"Spongebob Medal"			//5
+"Spongebob Medal",			//5
+"One Million Dollars"
 };
 
 unsigned short int inventory[10];
@@ -158,6 +160,11 @@ void searchArea(unsigned short int area)
 			printf("This place looks like the nether from Minecraft. It's also pretty hot, also look at that there's fire and... aw shit it's consumed you.\n");
 			gaming = false;
 			whyNotGaming = exitPlayerDied;
+			break;
+		}
+		case areaBackyard:
+		{
+			printf("There's a lotta rain, maybe munsters too, just kidding though there is no truth to that last remark. It's a little dark outside and everything looks gloomy. There is long grass, a tiny lake, a fence, and a gate. The fence separates your backyard from other peoples' backyards.\n"); 
 			break;
 		}
 		default:
@@ -457,6 +464,25 @@ void gmLoopBackyard()
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
+		else if (psaid("search grass"))
+		{
+			printf("You find a note that reads:\nI've been constructing many devices my son must not be aware of. One of them is my genius door opening device, which I hid under his closet. He'll never find it, unless this note exposing all of my secrets for absolutely no reason somehow ends up in his hands.\nThe rest of the note is torn or soaked with water.\n");
+		}
+		else if (psaid("search lake"))
+		{
+			printf("The lake is incredibly shallow but spans much of the backyard. You think you see a frog or some shit in there so you walk closer to it. Before you know it, you've slipped, and due to your incredible weakness, fal l face-first into the shallow lake and drown.\n");
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
+		}
+		else if (psaid("search fence"))
+		{
+			printf("It's made of flimsy wood. It looks like it could easily be knocked down, though you might not want to wreck it since you'll probably alert zombies to your location.\n");
+		}
+		else if (psaid("search gate"))
+		{
+			printf("It leads to your front lawn.\n");
+		}
+		else if (p
 		else
 		{
 			printUnknownCommand(input);
