@@ -10,7 +10,7 @@
 // Global Variables
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead;
 
 // Game
 bool gaming = true;
@@ -29,14 +29,16 @@ enum gmItem{
 itemDoorOpener = 1,
 itemInvisObject = 2,
 itemMilk = 3,
-itemNothing = 4
+itemPlotholer = 4,
+itemSMedal = 5
 };
 const char *gmItemName[] = {
-"Nothing",
+"Nothing",				//1
 "Mystical Door Opening Device",
 "Invisible Object",
 "Milk",
-"Literally Nothing"
+"The Plotholer",
+"Spongebob Medal"			//5
 };
 
 unsigned short int inventory[10];
@@ -126,6 +128,17 @@ int showInventory()
 	return 0;
 }
 
+bool hasInventoryItem(const unsigned short int item)
+{
+	int size = getInventorySize();
+	for (int i = 0; i < size; i ++)
+	{
+		if (inventory[i] == item)
+			return true;
+	}
+	return false;
+}
+
 void searchArea(unsigned short int area)
 {
 	switch (area)
@@ -138,6 +151,13 @@ void searchArea(unsigned short int area)
 		case areaHole:
 		{
 			printf("The place is quite damp and dark, but dimly lit light-blue by some unknown force. There is a mound of dirt, dirt walls, and a steel door. Smells good in here!\n");
+			break;
+		}
+		case areaHell:
+		{
+			printf("This place looks like the nether from Minecraft. It's also pretty hot, also look at that there's fire and... aw shit it's consumed you.\n");
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
 			break;
 		}
 		default:
@@ -153,6 +173,13 @@ char* getAreaName(unsigned short int area)
 	switch (area)
 	{
 		case areaBedroom: strcpy(str, "BEDROOM"); break;
+		case areaBackyard: strcpy(str, "BACKYARD"); break;
+		case areaHall: strcpy(str, "HALL"); break;
+		case areaHole: strcpy(str, "???"); break;
+		case areaHell: strcpy(str, "HELL"); break;
+		case areaFrontDoor: strcpy(str, "FRONT DOOR"); break;
+		case areaDiningRoom: strcpy(str, "DINING ROOM"); break;
+		case areaLawn: strcpy(str, "LAWN"); break;
 		default:
 		{
 			strcpy(str, "TITLESCREEN");
@@ -202,6 +229,18 @@ int tryGlobalCommand(char *command)
 	{
 		system("clear");
 		return 1;
+	}
+	else if (strcmp(command, "use the plotholer") == 0) // Item Uses
+	{
+		if (hasInventoryItem(itemPlotholer))
+		{
+			printf("Milk bruhs out of thin air into your hands. You drink it.\n[PLOTHOLEC] PLOT SUCCESSFULLY HOLED, exit code 0\n[PLOTHOLEC] WARNING: holes in reality may be unintentionally opened\n");
+			gaming = false;
+			whyNotGaming = exitGameWon;
+			return 1;
+		}
+		else
+			return 0;
 	}
 	else if (strcmp(command, "") == 0)
 	{
@@ -459,7 +498,7 @@ void gmLoopHole()
 		{
 			if (!eHoleOpen)
 			{
-				printf("The mound of dirt comes to life and says:\nTHAMK YOU MAN. I WILL MOVE OUT OF THWAY NOW.\n\n\nA dark hole was left in the mound of dirt's place.\n");
+				printf("The mound of dirt comes to life and says:\nTHAMK YOU MAN. I WILL MOVE OUT OF THWAY NOW.\n\nA dark hole was left in the mound of dirt's place.\n");
 				eHoleOpen = true;
 			}
 			else
@@ -469,9 +508,14 @@ void gmLoopHole()
 		}
 		else if (psaid("go through hole"))
 		{
-			area = areaHell;
-			printf("You've entered a secret portal to hell.\n");
-			break;
+			if (eHoleOpen)
+			{
+				area = areaHell;
+				printf("You've entered a secret portal to hell.\n");
+				break;
+			}
+			else
+				printf("No.\n");
 		}
 		else if (psaid("search steel door"))
 		{
@@ -495,6 +539,15 @@ void gmLoopHole()
 			area = areaBedroom;
 			break;
 		}
+		else if (psaid("search hole"))
+		{
+			if (eHoleOpen)
+			{
+				printf("My advice?\nLisa the Painful OST - Don't Go in There\n");
+			}
+			else
+				printf("What? That does not exist yet bro.\n");
+		}
 		else
 		{
 			printUnknownCommand(input);
@@ -503,7 +556,40 @@ void gmLoopHole()
 }
 void gmLoopHell()
 {
-	
+	while (gaming)
+	{
+		pinput();
+		if (tryGlobalCommand(input)){}
+		else if (psaid("do a cool"))
+		{
+			area = areaWHAT;
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
+			break;
+		}
+		else if (psaid("kill this guy"))
+		{
+			if (!eThisGuyDead)
+			{
+				printf("Amidst the flames you make out some dark figure. You slap a couple times into the flames and he dissapears, guess he died or something. You pick up a legendary item: The Plotholer, that he dropped.\n");
+				addInventoryItem(itemPlotholer);
+				eThisGuyDead = true;
+			}
+			else
+				printUnknownCommand(input);
+		}
+		else if (psaid("go through hole"))
+		{
+			printf("You find the hole by walking backwards into it.\nBack to that weird dirt hallway!\n");
+			area = areaHole;
+			break;
+		}
+		else
+		{
+			printUnknownCommand(input);
+		}
+
+	}
 }
 
 // Game Start
