@@ -10,7 +10,7 @@
 // Global Variables
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken;
 
 // Game
 bool gaming = true;
@@ -325,7 +325,7 @@ void gmLoopBedroom()
 			if (eWindowOpen)
 			{
 				area = areaBackyard;
-				printf("You jump out of your bedroom window and land in your wet and grassy backyard, breaking your legs in the process. It's raining if you couldn't tell\n");
+				printf("You jump out of your bedroom window and land in your wet and grassy backyard, breaking your legs in the process. It's raining if you couldn't tell.\n");
 			}
 			else
 			{
@@ -427,6 +427,10 @@ void gmLoopBedroom()
 				printOpen("steel door you just opened with your mystical door opening device that opens doors");
 			}
 		}
+		else if (psaid("break steel door"))
+		{
+			printf("You punch it.\nOw.\nNothing happened.\n");
+		}
 		else if (psaid("close steel door"))
 		{
 			if (eSteelDoorOpen)
@@ -476,13 +480,79 @@ void gmLoopBackyard()
 		}
 		else if (psaid("search fence"))
 		{
-			printf("It's made of flimsy wood. It looks like it could easily be knocked down, though you might not want to wreck it since you'll probably alert zombies to your location.\n");
+			if (eFenceBroken)
+			{
+				printf("It toppled, dude.\n");
+			}
+			else
+			{
+				printf("It's made of flimsy wood. It looks like it could easily be knocked down, though you might not want to wreck it since you'll probably alert zombies to your location.\n");
+			}
+		}
+		else if (psaid("knock over fence"))
+		{
+			if (eFenceBroken)
+			{
+				printf("You tap the knocked over fence. All of a sudden, a huge FLASH OF LIGHT-Just kidding nothing happens.\n");
+			}
+			else
+			{
+			
+				printf("You tap the fence and it topples over like dominoes. On the other side is a million dollars.\n");
+				eFenceBroken = true;
+			}
+		}
+		else if (psaid("get million dollars"))
+		{
+			if (eFenceBroken && !hasInventoryItem(itemMoney))
+			{
+				printf("You pick up the money.\n");
+				addInventoryItem(itemMoney);
+			}
+			else
+				printUnknownCommand(input);
 		}
 		else if (psaid("search gate"))
 		{
 			printf("It leads to your front lawn.\n");
 		}
-		else if (p
+		else if (psaid("go through gate"))
+		{
+			if (eGateOpen)
+			{
+				printf("You enter your front lawn.\n");
+				area = areaLawn;
+				break;
+			}
+			else
+			{
+				printf("You walk into the gate, shattering your entire face and body and everything, also breaking open the gate in the process. Due to the amount of radioactive soaps, salts, and bagels in the surrounding area, the shatter caused a rift in time, two dimensions have been created from one, one where your clanking against the gate startles a bird, and one where that bird is not startled. In the dimension where the bird was startled, it flew to a tree that knocked over a leaf that blew into a can of beans. The high crystal content of the beans caused both dimensions to merge. The high council spotted this and worked quickly to stich the universe back together, rewinding time to the point where you hadn't broken the gate and your face. A team of spoon inspector-investigators detected the high spoon content of the nearby soil and eliminated the issue. They also opened the gate and mysticaly stopped it from ever being closed again.\n");
+				eGateOpen = true;
+			}
+		}
+		else if (psaid("open gate"))
+		{
+			if (eGateOpen)
+			{
+				printOpen("gate");
+			}
+			else
+			{
+				eGateOpen = true;
+				printOpening("gate");
+			}
+		}
+		else if (psaid("close gate"))
+		{
+			if (eGateOpen)
+			{
+				printf("you may not.\n");
+			}
+			else
+			{
+				printClosed("gate");
+			}
+		}
 		else
 		{
 			printUnknownCommand(input);
