@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
-// Test
+
 // Macros
 #define INPUT_SIZE 80
 
