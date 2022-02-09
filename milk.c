@@ -10,7 +10,7 @@
 // Global Variables
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting;
 
 // Game
 bool gaming = true;
@@ -165,6 +165,11 @@ void searchArea(unsigned short int area)
 		case areaBackyard:
 		{
 			printf("There's a lotta rain, maybe munsters too, just kidding though there is no truth to that last remark. It's a little dark outside and everything looks gloomy. There is long grass, a tiny lake, a fence, and a gate. The fence separates your backyard from other peoples' backyards.\n"); 
+			break;
+		}
+		case areaHall:
+		{
+			printf("The hall is very run down, only illuminated by a lightbulb tangling from the cieling from a tiny string. The floor is made of dark wood and the walls are covered with a dark green carpet-like pattern. There is a crack in the floor, a painting, stairs that lead to the front door, and a locked door.\n");
 			break;
 		}
 		default:
@@ -365,6 +370,7 @@ void gmLoopBedroom()
 			{
 				printf("You walk through the door and enter the hallway outside your room.\n");
 				area = areaHall;
+				eGapStairsSide = false;
 				break;
 			}
 			else
@@ -474,9 +480,12 @@ void gmLoopBackyard()
 		}
 		else if (psaid("search lake"))
 		{
-			printf("The lake is incredibly shallow but spans much of the backyard. You think you see a frog or some shit in there so you walk closer to it. Before you know it, you've slipped, and due to your incredible weakness, fal l face-first into the shallow lake and drown.\n");
+			printf("The lake is incredibly shallow but spans much of the backyard. Like the 3 year old you mentally are, you think it looks fun to splash in.\n");
+		}
+		else if (psaid("splash in lake"))
+		{
 			gaming = false;
-			whyNotGaming = exitPlayerDied;
+			break;
 		}
 		else if (psaid("search fence"))
 		{
@@ -561,11 +570,163 @@ void gmLoopBackyard()
 }
 void gmLoopHall()
 {
-	
+	while (1)
+	{
+		pinput();
+		if (tryGlobalCommand(input)){}
+		else if (psaid("search crack"))
+		{
+			printf("This leads to a hole that probably never ends.\nI would not advise exploring it.\n");
+		}
+		else if (psaid("explore crack"))
+		{
+			printf("Dude, that's not a command bruh you use search for that crap.\n");
+		}
+		else if (psaid("go through crack"))
+		{
+			printf("You fall through the crack and are died.\n");
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
+			break;
+		}
+		else if (psaid("jump over crack"))
+		{
+			printf("You jump over the crack in the floor.\n");
+			if (eGapStairsSide)
+			{
+				eGapStairsSide = false;
+				printf("You are now on the side of the hall close to the door to your bedroom.\n");
+			}
+			else
+			{
+				eGapStairsSide = true;
+				printf("You are now on the side of the hall close to the stairs to the front door.\n");
+			}
+		}
+		else if (psaid("smoke crack"))
+		{
+			printf("I'm gonna kill you for how unfunny you are.\n");
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
+			break;
+		}
+		else if (psaid("i speak to the bruhs"))
+		{
+			gaming = false;
+			whyNotGaming = 40;
+			break;
+		}
+		else if (psaid("close wooden door"))
+		{
+			if (eWoodDoorOpen)
+			{
+				eWoodDoorOpen = false;
+				printClosing("door");
+			}
+			else
+				printClosed("door");
+		}
+		else if (psaid("open wooden door"))
+		{
+			if (eWoodDoorOpen)
+				printOpen("door");
+			else
+			{
+				eWoodDoorOpen = true;
+				printOpening("door");
+			}
+		}
+		else if (psaid("go through wooden door"))
+		{
+			if (eGapStairsSide)
+			{
+				printf("While walking to the door, you fall through the crack in the floor.\n");
+				gaming = false;
+				whyNotGaming = exitPlayerDied;
+				break;
+			}
+			else
+			{
+				if (eWoodDoorOpen)
+				{
+					printf("You enter yoru bedroom.\n");
+					area = areaBedroom;
+					break;
+				}
+				else
+				{
+					printf("The door is closed my dude.\n");
+				}
+			}
+		}
+		else if (psaid("search painting"))
+		{
+			if (eStaredAtPainting)
+			{
+				printf("You stare at the soapy man further. The ground starts to shake. The soap in his eyes become soaked with suds.\nThe man jumps out of the painting and froze time.\n");
+				gaming = false;
+				whyNotGaming = 8;
+				break;
+			}
+			else
+			{
+				printf("It's a painting of a guy with soap for eyes.\nYou feel like staring at this for longer will curse you somehow.\n");
+				eStaredAtPainting = true;
+			}
+		}
+		else if (psaid("search gnome"))
+		{
+			if (eGnomeDied)
+			{
+				printf("He ded.\n");
+			}
+			else
+			{
+				printf("It's a little tiny gnome bruh.\nYou walk up to get to get a closer look, and as you take another step he runs under your boot and.............. OH NO\n");
+				eGnomeDied = true;
+			}
+			printf(":(\n");
+		}
+		else if (psaid("search locked door"))
+		{
+			printf("You find a post-it note stuck to the door, it reads:\nFiller.\n");
+		}
+		else if (psaid("go down stairs"))
+		{
+			if (eGapStairsSide)
+			{
+				printf("You fall down the stairs, permanently damaging your internal organs.\n");
+				area = areaFrontDoor;
+				break;
+			}
+			else
+			{
+				printf("You fell in the crack in the floor and were never heard from again.\n");
+				gaming = false;
+				whyNotGaming = exitPlayerDied;
+				break;
+			}
+		}
+		else
+		{
+			printUnknownCommand(input);
+		}
+	}
 }
 void gmLoopFrontDoor()
 {
-	
+	while (1)
+	{
+		pinput();
+		if (tryGlobalCommand(input)){}
+		else if (psaid(""))
+		{
+		}
+		else
+		{
+			printUnknownCommand(input);
+		}
+	}	
 }
 void gmLoopLawn()
 {
