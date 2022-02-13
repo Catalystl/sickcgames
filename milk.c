@@ -9,8 +9,23 @@
 
 // Global Variables
 
+/*
+int main ()
+{
+    time_t seconds;
+     
+    seconds = time(NULL);
+    printf("Seconds since January 1, 1970 = %ld\n", seconds);
+     
+    return(0);
+}
+*/
+
+// Time
+time_t timeGameBegan, timeLawnEntered;
+
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning;
 
 // Game
 bool gaming = true;
@@ -172,6 +187,11 @@ void searchArea(unsigned short int area)
 			printf("The hall is very run down, only illuminated by a lightbulb tangling from the cieling from a tiny string. The floor is made of dark wood and the walls are covered with a dark green carpet-like pattern. There is a crack in the floor, a painting, stairs that lead to the front door, and a locked door.\n");
 			break;
 		}
+		case areaFrontDoor:
+		{
+			printf("You are standing at a small section of the house close to the stairs, front door, and hallway to the dining room. There's a zombie on the ground also.\n");
+			break;
+		}
 		default:
 		{
 			printf("Where... are you?\n");
@@ -242,6 +262,11 @@ int tryGlobalCommand(char *command)
 		system("clear");
 		return 1;
 	}
+	else if (strcmp(command, "time") == 0)
+	{
+		printf("%ld\n", time(NULL) - timeGameBegan);
+		return 1;
+	}
 	else if (strcmp(command, "use the plotholer") == 0) // Item Uses
 	{
 		if (hasInventoryItem(itemPlotholer))
@@ -274,7 +299,12 @@ void printClosing(const char* str){ printf("You close the %s.\n", str); }
 void pinput()
 {
 	char* location = getAreaName(area);
-	printf("DUDE AT %s > ", location);
+
+	if (eSpeedrunning)
+		printf("%s %ld > ", location, time(NULL) - timeGameBegan);
+	else
+		printf("DUDE AT %s > ", location);
+	
 	free(location);
 
 	fgets(input, INPUT_SIZE, stdin);
@@ -719,8 +749,48 @@ void gmLoopFrontDoor()
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
-		else if (psaid(""))
+		else if (psaid("search front door"))
 		{
+			printf("It's broken.\n");
+		}
+		else if (psaid("search zombie"))
+		{
+			printf("It's dead, and has tons of splinters.\n");
+		}
+		else if (psaid("go up stairs"))
+		{
+			printf("You walk up the stairs.\n");
+			area = areaHall;
+			eGapStairsSide = true;
+			break;
+		}
+		else if (psaid("search stairs"))
+		{
+			printf("Who gives a shit about stairs?\n");
+		}
+		else if (psaid("go through hall"))
+		{
+			printf("You enter the dining room.\n");
+			area = areaDiningRoom;
+			break;
+		}
+		else if (psaid("go through front door"))
+		{
+			printf("You step through the broken door and exit the house.\n");
+			area = areaLawn;
+			break;
+		}
+		else if (psaid("open front door") || psaid("close front door"))
+		{
+			printf("You touch the door knob, covered with splinters.\ngg mate.\n");
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
+			break;
+		}
+		else if (psaid("search hall"))
+		{
+			printf("It stretches pretty long and you can't see the end of it, but you're pretty sure the dining room is down it somewhere\n");
+			break;
 		}
 		else
 		{
@@ -730,7 +800,27 @@ void gmLoopFrontDoor()
 }
 void gmLoopLawn()
 {
-	
+	timeLawnEntered = time(NULL);
+
+	while (gaming)
+	{
+		pinput();
+		if (time(NULL) - timeLawnEntered >= 60)
+		{
+			printf("You go ahead and-\nWait, nevermind, it's been 60 seconds so the zombie's killed you.\n");
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
+		}
+		else if (tryGlobalCommand(input)){}
+		else if (psaid("bruh"))
+		{
+			printf("yes\n");
+		}
+		else
+		{
+			printUnknownCommand(input);
+		}
+	}	
 }
 void gmLoopDiningRoom()
 {
@@ -867,12 +957,18 @@ void gmLoop()
 			whyNotGaming = exitPlayerDied;
 			break;
 		}
+		else if (strcmp(input, "start speedrun") == 0)
+		{
+			eSpeedrunning = true;
+			break;
+		}
 		else
 		{
 			printf("Dude... type S T A R T, START.\n");
 		}
 	}
 	
+	timeGameBegan = time(NULL);
 	area = areaBedroom;
 	
 	// Loop through areas of the world
