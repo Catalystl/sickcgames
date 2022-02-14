@@ -13,7 +13,7 @@
 time_t timeGameBegan, timeLawnEntered;
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot, eGnome2Died;
 
 // Game
 bool gaming = true;
@@ -822,48 +822,14 @@ void gmLoopLawn()
 		{
 			printf("It looks like it's about %ld seconds from reaching you.\n", 60 - (time(NULL) - timeLawnEntered));
 		}
-		else if (psaid("search front door"))
+		else if (psaid("search front door") || psaid("open front door") || psaid("close front door"))
 		{
-			printf("...It's a door.\n");
-		}
-		else if (psaid("open front door"))
-		{
-			if (eFrontDoorOpen)
-				printOpen("door");
-			else
-			{
-				printOpening("door");
-				eFrontDoorOpen = true;
-			}
-		}
-		else if (psaid("close front door"))
-		{
-			if (eFrontDoorOpen)
-			{
-				printClosing("door");
-				eFrontDoorOpen = false;
-			}
-			else
-				printClosed("door");
+			printf("It's broken.\n");
 		}
 		else if (psaid("go through front door"))
 		{
-			if (eFrontDoorOpen)
-			{
-				printf("You go through the door, also, I probably should've replaced every go through command with enter now that I think about it.\n");
-				area = areaFrontDoor;
-				break;
-			}
-			else
-			{
-				printf("The door's closed so you just bump against it.");
-				if (!eLawnZombDead)
-				{
-					printf(" The zombie catches up to you by 10 seconds.");
-					timeLawnEntered -= 10;
-				}
-				printf("\n");
-			}
+			printf("You go through the door, also, I probably should've replaced every go through command with enter now that I think about it.\n");
+			area = areaFrontDoor;	
 		}
 		else if (psaid("search tree"))
 		{
@@ -890,7 +856,14 @@ void gmLoopLawn()
 }
 void gmLoopDiningRoom()
 {
-		
+	while (gaming)
+	{
+		pinput();
+		if (tryGlobalCommand(input)){}
+		{
+
+		}
+	}
 }
 void gmLoopHole()
 {
