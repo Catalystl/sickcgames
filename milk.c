@@ -9,23 +9,11 @@
 
 // Global Variables
 
-/*
-int main ()
-{
-    time_t seconds;
-     
-    seconds = time(NULL);
-    printf("Seconds since January 1, 1970 = %ld\n", seconds);
-     
-    return(0);
-}
-*/
-
 // Time
 time_t timeGameBegan, timeLawnEntered;
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot;
 
 // Game
 bool gaming = true;
@@ -74,9 +62,6 @@ areaHell = 9
 };
 
 unsigned short int area = areaWHAT;
-
-
-
 
 // Function Prototypes
 void gmLoopBedroom();
@@ -190,6 +175,14 @@ void searchArea(unsigned short int area)
 		case areaFrontDoor:
 		{
 			printf("You are standing at a small section of the house close to the stairs, front door, and hallway to the dining room. There's a zombie on the ground also.\n");
+			break;
+		}
+		case areaLawn:
+		{
+			printf("You're standing in your lawn. There's a ravine where the street once was and a zombie that will reach you in about 60 seconds. There's also the front door to your house and a tree.");
+			if (eMeteorCrashed)
+				printf(" And also a meteor.");
+			printf("\n");
 			break;
 		}
 		default:
@@ -514,7 +507,9 @@ void gmLoopBackyard()
 		}
 		else if (psaid("splash in lake"))
 		{
+			printf("When you reach the lake, you slip and fall face forwards into it. Due to the frailness of your body form eating nothing but egg seeds all day for the past 25 years, you lack the strength the get up, and lie there until you drown.\n");
 			gaming = false;
+			whyNotGaming = exitPlayerDied;
 			break;
 		}
 		else if (psaid("search fence"))
@@ -805,16 +800,87 @@ void gmLoopLawn()
 	while (gaming)
 	{
 		pinput();
-		if (time(NULL) - timeLawnEntered >= 60)
+		if (time(NULL) - timeLawnEntered >= 60 && !eLawnZombDead)
 		{
 			printf("You go ahead and-\nWait, nevermind, it's been 60 seconds so the zombie's killed you.\n");
 			gaming = false;
 			whyNotGaming = exitPlayerDied;
+			break;
 		}
 		else if (tryGlobalCommand(input)){}
-		else if (psaid("bruh"))
+		else if (psaid("kill zombie"))
 		{
-			printf("yes\n");
+			if (eLawnZombDead)
+				printf("It's dead already.\n");
+			else
+			{
+				printf("You kill the zombie. Nice job man.\n");
+				eLawnZombDead = true;
+			}
+		}
+		else if (psaid("search zombie"))
+		{
+			printf("It looks like it's about %ld seconds from reaching you.\n", 60 - (time(NULL) - timeLawnEntered));
+		}
+		else if (psaid("search front door"))
+		{
+			printf("...It's a door.\n");
+		}
+		else if (psaid("open front door"))
+		{
+			if (eFrontDoorOpen)
+				printOpen("door");
+			else
+			{
+				printOpening("door");
+				eFrontDoorOpen = true;
+			}
+		}
+		else if (psaid("close front door"))
+		{
+			if (eFrontDoorOpen)
+			{
+				printClosing("door");
+				eFrontDoorOpen = false;
+			}
+			else
+				printClosed("door");
+		}
+		else if (psaid("go through front door"))
+		{
+			if (eFrontDoorOpen)
+			{
+				printf("You go through the door, also, I probably should've replaced every go through command with enter now that I think about it.\n");
+				area = areaFrontDoor;
+				break;
+			}
+			else
+			{
+				printf("The door's closed so you just bump against it.");
+				if (!eLawnZombDead)
+				{
+					printf(" The zombie catches up to you by 10 seconds.");
+					timeLawnEntered -= 10;
+				}
+				printf("\n");
+			}
+		}
+		else if (psaid("search tree"))
+		{
+			printf("It's pretty tall but still looks climbable.\n");
+		}
+		else if (psaid("climb tree"))
+		{
+			if (eTreeItemGot)
+			{
+				printf("You climb the tree. From here you can see a couple of the houses around you. Most of them have been ahnillated by meteors.\n");
+			}
+			else
+			{
+				printf("You find a mysterious invisible and useless object in the tree. You grab it.\n");
+				addInventoryItem(itemInvisObject);
+				eTreeItemGot = true;
+			}
 		}
 		else
 		{
@@ -824,7 +890,7 @@ void gmLoopLawn()
 }
 void gmLoopDiningRoom()
 {
-	
+		
 }
 void gmLoopHole()
 {
@@ -1020,7 +1086,7 @@ int main(void)
 		}
 		case exitGameWon:
 		{
-			printf("YOOOOOOOOO you win thanks for playing!\n");
+			printf("YOOOOOOOOO you win thanks for playing!\nTime: %ld\n", time(NULL) - timeGameBegan);
 			break;
 		}
 		default:
