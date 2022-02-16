@@ -13,7 +13,7 @@
 time_t timeGameBegan, timeLawnEntered;
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot, eGnome2Died;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot, eGnome2Died, eMilkGot, eGlassGot, eMilkFalling, eFortEntered, eGnome2Happy;
 
 // Game
 bool gaming = true;
@@ -34,7 +34,9 @@ itemInvisObject = 2,
 itemMilk = 3,
 itemPlotholer = 4,
 itemSMedal = 5,
-itemMoney = 6
+itemMoney = 6,
+itemBagle = 7,
+itemShovel = 8
 };
 const char *gmItemName[] = {
 "Nothing",				//1
@@ -43,7 +45,9 @@ const char *gmItemName[] = {
 "Milk",
 "The Plotholer",
 "Spongebob Medal",			//5
-"One Million Dollars"
+"One Million Dollars",
+"Bagel",
+"Shovel"
 };
 
 unsigned short int inventory[10];
@@ -58,7 +62,8 @@ areaLawn = 5,
 areaDiningRoom = 6,
 areaHole = 7,
 areaWHAT = 8,
-areaHell = 9
+areaHell = 9,
+areaFort = 10
 };
 
 unsigned short int area = areaWHAT;
@@ -173,7 +178,7 @@ void searchArea(unsigned short int area)
 			break;
 		}
 		case areaFrontDoor:
-		{
+		{	
 			printf("You are standing at a small section of the house close to the stairs, front door, and hallway to the dining room. There's a zombie on the ground also.\n");
 			break;
 		}
@@ -182,6 +187,21 @@ void searchArea(unsigned short int area)
 			printf("You're standing in your lawn. There's a ravine where the street once was and a zombie that will reach you in about 60 seconds. There's also the front door to your house and a tree.");
 			if (eMeteorCrashed)
 				printf(" And also a meteor.");
+			printf("\n");
+			break;
+		}
+		case areaDiningRoom:
+		{
+			printf("This is the only somewhat-nice looking room in your house, but still looks like a liminal space. There is a fridge, table, black hole, and TV.\nYou're pretty sure this is where the milk is.\n");
+			break;
+		}
+		case areaFort:
+		{
+			printf("There is a huge stack of cardboard boxes that I guess you could call a fort. In the midst of the pile, you spot an opening where ");
+			if (eGnome2Died)
+				printf("that gnome you killed is on the verge of slipping from.");
+			else
+				printf("a lone gnome stands.");
 			printf("\n");
 			break;
 		}
@@ -205,6 +225,7 @@ char* getAreaName(unsigned short int area)
 		case areaFrontDoor: strcpy(str, "FRONT DOOR"); break;
 		case areaDiningRoom: strcpy(str, "DINING ROOM"); break;
 		case areaLawn: strcpy(str, "LAWN"); break;
+		case areaFort: strcpy(str, "BOX FORT"); break;
 		default:
 		{
 			strcpy(str, "TITLESCREEN");
@@ -257,7 +278,7 @@ int tryGlobalCommand(char *command)
 	}
 	else if (strcmp(command, "time") == 0)
 	{
-		printf("%ld\n", time(NULL) - timeGameBegan);
+		printf("You have been searching for milk for %ld seconds.\n", time(NULL) - timeGameBegan);
 		return 1;
 	}
 	else if (strcmp(command, "use the plotholer") == 0) // Item Uses
@@ -601,7 +622,7 @@ void gmLoopHall()
 		if (tryGlobalCommand(input)){}
 		else if (psaid("search crack"))
 		{
-			printf("This leads to a hole that probably never ends.\nI would not advise exploring it.\n");
+			printf("This leads to a hole that probably never ends.\nI would not advise exploring it.\nAlso I just realized I probably should've named this a chasm or something because crack just implies it's a dent on the floor...\n");
 		}
 		else if (psaid("explore crack"))
 		{
@@ -674,7 +695,7 @@ void gmLoopHall()
 			{
 				if (eWoodDoorOpen)
 				{
-					printf("You enter yoru bedroom.\n");
+					printf("You enter your bedroom.\n");
 					area = areaBedroom;
 					break;
 				}
@@ -716,6 +737,10 @@ void gmLoopHall()
 		{
 			printf("You find a post-it note stuck to the door, it reads:\nFiller.\n");
 		}
+		else if (psaid("search stairs"))
+		{
+			printf("It's a black spiral staircase made of wood that leads to your front door.\n");
+		}
 		else if (psaid("go down stairs"))
 		{
 			if (eGapStairsSide)
@@ -726,7 +751,7 @@ void gmLoopHall()
 			}
 			else
 			{
-				printf("You fell in the crack in the floor and were never heard from again.\n");
+				printf("Since you were on the opposite side of the hallway to the stairs. You run into the crack in the floor and were never heard from again.\n");
 				gaming = false;
 				whyNotGaming = exitPlayerDied;
 				break;
@@ -765,8 +790,8 @@ void gmLoopFrontDoor()
 		}
 		else if (psaid("go through hall"))
 		{
-			printf("You enter the dining room.\n");
-			area = areaDiningRoom;
+			printf("You walk down the hall.\n");
+			area = areaFort;
 			break;
 		}
 		else if (psaid("go through front door"))
@@ -829,7 +854,46 @@ void gmLoopLawn()
 		else if (psaid("go through front door"))
 		{
 			printf("You go through the door, also, I probably should've replaced every go through command with enter now that I think about it.\n");
-			area = areaFrontDoor;	
+			area = areaFrontDoor;
+			break;
+		}
+		else if (psaid("open gate"))
+		{
+			if (eGateOpen)
+				printOpen("gate");
+			else
+			{
+				printOpening("gate");
+				eGateOpen = true;
+			}
+		}
+		else if (psaid("close gate"))
+		{
+			if (eGateOpen)
+			{
+				printClosing("gate");
+				eGateOpen = false;
+			}
+			else
+				printClosed("gate");
+		}
+		else if (psaid("go through gate"))
+		{
+			if (eGateOpen)
+			{
+				printf("You go through the gate. The zombie does not follow you through it.\n");
+				area = areaBackyard;
+				break;
+			}
+			else
+			{
+				printf("You walk into the closed gate, letting the zombie catch up to you by approximately 15 seconds, which might not make sense but shhhhhhhh\n");
+				timeLawnEntered -= 15;
+			}
+		}
+		else if (psaid("talk to zombie"))
+		{
+			printf("It responds:\n\"I'm gonna kill you. Sup.\"");
 		}
 		else if (psaid("search tree"))
 		{
@@ -854,14 +918,50 @@ void gmLoopLawn()
 		}
 	}	
 }
+void gmLoopFort()
+{
+	if (!eFortEntered)
+	{
+		printf("You thought you'd eventually reach the dining room... but you seem to have run into a box fort.\n");
+		eFortEntered = true;
+	}
+	
+	while (gaming)
+	{
+		pinput();
+		if (tryGlobalCommand(input)){}
+		else if (psaid("search gnome"))
+		{
+			if (eGnome2Died)
+			{
+				printf("He looks pretty dead.\n");
+			}
+			else
+			{
+				printf("He looks pretty pissed, but not that attentive. Maybe you could sneak past him.\n");
+			}
+		}
+		else if (psaid("sneak past gnome"))
+		{
+			printf("You begin to crawl on the floor, trying your hardest to not make the wood creak, but before you know it, the gnome rappels down from the cardboard and stabs you, ending your mission to secure some good ass milk.\nHA! That's what you get for trying to have fun pursuing an interesting path in this game!\n");
+			gaming = false;
+			whyNotGaming = exitPlayerDied;
+		}
+		else
+		{
+			printUnknownCommand(input);
+		}
+	}
+}
 void gmLoopDiningRoom()
 {
 	while (gaming)
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
+		else
 		{
-
+			printUnknownCommand(input);
 		}
 	}
 }
@@ -1008,7 +1108,7 @@ void gmLoop()
 	}
 	
 	timeGameBegan = time(NULL);
-	area = areaBedroom;
+	area = areaFort;
 	
 	// Loop through areas of the world
 	while (gaming)
@@ -1023,6 +1123,7 @@ void gmLoop()
 			case areaDiningRoom: gmLoopDiningRoom(); break;
 			case areaHole: gmLoopHole(); break;
 			case areaHell: gmLoopHell(); break;
+			case areaFort: gmLoopFort(); break;
 			default:
 			{
 				printf("...dude where the HECK are you? I'm gonna end the game ok.\n");
@@ -1059,7 +1160,7 @@ int main(void)
 		}
 		case exitGameWon:
 		{
-			printf("YOOOOOOOOO you win thanks for playing!\nTime: %ld\n", time(NULL) - timeGameBegan);
+			printf("YOOOOOOOOO you win thanks for playing!\nTIME: %ld seconds\n", time(NULL) - timeGameBegan);
 			break;
 		}
 		default:
