@@ -972,7 +972,7 @@ void gmLoopHole()
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
-		else if (psaid("search mount of dirt") && !eHoleOpen)
+		else if (psaid("search mound of dirt") && !eHoleOpen)
 		{
 			printf("Written in pink, soapy crayon on the dirt:\nHELLO BRO. PLEASE SAY AN FUNNY WORDT TO GET THROUGH! :^))\n");
 		}
@@ -1108,7 +1108,7 @@ void gmLoop()
 	}
 	
 	timeGameBegan = time(NULL);
-	area = areaFort;
+	area = areaBedroom;
 	
 	// Loop through areas of the world
 	while (gaming)
