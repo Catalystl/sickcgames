@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 // Macros
 #define INPUT_SIZE 80
@@ -13,7 +14,7 @@
 time_t timeGameBegan, timeLawnEntered;
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot, eGnome2Died, eMilkGot, eGlassGot, eMilkFalling, eFortEntered, eGnome2Happy;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot, eGnome2Died, eMilkGot, eGlassGot, eMilkFalling, eFortEntered, eGnome2Happy, eGnome2Met;
 
 // Game
 bool gaming = true;
@@ -77,13 +78,27 @@ void gmLoopLawn();
 void gmLoopDiningRoom();
 void gmLoopHole();
 void gmLoopHell();
+void gmLoopFort();
 
 // Functions
+
+// String uppercasing
+void strupr(char* str)
+{
+	int len = strlen(str);
+	for (int i = 0; i < len; i ++)
+	{
+		str[i] = toupper(str[i]);
+	}
+}
+
+// Read Player Input
 bool psaid(const char* str)
 {
 	return strcmp(input, str) == 0;
 }
 
+// Inventory
 int getInventorySize()
 {
 	int i = 0;
@@ -146,6 +161,7 @@ bool hasInventoryItem(const unsigned short int item)
 	return false;
 }
 
+// Searching
 void searchArea(unsigned short int area)
 {
 	switch (area)
@@ -321,6 +337,13 @@ void pinput()
 	
 	free(location);
 
+	fgets(input, INPUT_SIZE, stdin);
+	input[strlen(input)-1] = '\0';
+}
+// Player Input (talking)
+void pinputt()
+{
+	printf("YOUR RESPONSE > ");
 	fgets(input, INPUT_SIZE, stdin);
 	input[strlen(input)-1] = '\0';
 }
@@ -943,9 +966,26 @@ void gmLoopFort()
 		}
 		else if (psaid("sneak past gnome"))
 		{
-			printf("You begin to crawl on the floor, trying your hardest to not make the wood creak, but before you know it, the gnome rappels down from the cardboard and stabs you, ending your mission to secure some good ass milk.\nHA! That's what you get for trying to have fun pursuing an interesting path in this game!\n");
+			printf("You begin to crawl on the ground, trying your hardest to not make the floorboards creak, but before you know it, the gnome rappels down from the cardboard and stabs you, ending your mission to secure some good ass milk.\nHA! That's what you get for trying to have fun pursuing an interesting path in this game!\n");
 			gaming = false;
 			whyNotGaming = exitPlayerDied;
+			break;
+		}
+		else if (psaid("talk to gnome"))
+		{
+			if (eGnome2Met)
+			{
+
+			}
+			else
+			{
+				printf("In a deep, startling voice the gnome speaks:\nSTOP! Who are you?!\n");
+				pinputt();
+				char *pname;
+				strcpy(pname, input);
+				strupr(pname);
+				printf("%s!?!?!?!?!", pname);
+			}
 		}
 		else
 		{
@@ -1108,7 +1148,7 @@ void gmLoop()
 	}
 	
 	timeGameBegan = time(NULL);
-	area = areaBedroom;
+	area = areaFort;
 	
 	// Loop through areas of the world
 	while (gaming)
