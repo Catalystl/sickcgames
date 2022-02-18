@@ -36,7 +36,7 @@ itemMilk = 3,
 itemPlotholer = 4,
 itemSMedal = 5,
 itemMoney = 6,
-itemBagle = 7,
+itemBagels = 7,
 itemShovel = 8
 };
 const char *gmItemName[] = {
@@ -47,7 +47,7 @@ const char *gmItemName[] = {
 "The Plotholer",
 "Spongebob Medal",			//5
 "One Million Dollars",
-"Bagel",
+"Bagel Collection",
 "Shovel"
 };
 
@@ -82,7 +82,7 @@ void gmLoopFort();
 
 // Functions
 
-// String uppercasing
+// String uppercasing/lowercasing
 void strupr(char* str)
 {
 	int len = strlen(str);
@@ -91,10 +91,19 @@ void strupr(char* str)
 		str[i] = toupper(str[i]);
 	}
 }
+void strlwr(char* str)
+{
+	int len = strlen(str);
+	for (int i = 0; i < len; i ++)
+	{
+		str[i] = tolower(str[i]);
+	}
+}
 
 // Read Player Input
-bool psaid(const char* str)
+bool psaid(char* str)
 {
+	strlwr(input);
 	return strcmp(input, str) == 0;
 }
 
@@ -953,6 +962,31 @@ void gmLoopFort()
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
+		else if (psaid("go through fort"))
+		{
+			if (eGnome2Died)
+			{
+				printf("You pass through the fort and enter the dining room with no problem.\n");
+				area = areaDiningRoom;
+				break;
+			}
+			else
+			{
+				if (eGnome2Happy)
+				{
+					printf("The gnome lets you through, you enter the dining room.\n");
+					area = areaDiningRoom;
+					break;
+				}
+				else
+				{
+					printf("The gnome spots you and speaks:\nI NEVER SAID YOU COULD DO THAT!!!!!!!!!!\n*He ");
+					gaming = false;
+					whyNotGaming = exitPlayerDied;		
+				}
+			}
+			break;
+		}
 		else if (psaid("search gnome"))
 		{
 			if (eGnome2Died)
@@ -975,16 +1009,72 @@ void gmLoopFort()
 		{
 			if (eGnome2Met)
 			{
-
+				if (eGnome2Happy)
+				{
+					printf("The fucker speaks:\nI no longer have any use for you.\n");
+				}
+				else
+				{
+					if (hasInventoryItem(itemBagels))
+					{
+						printf("The gnome speaks:\nMIIIIINE!!!!!!\n*He grabs the sack of bagels out of your backpack or whatever the fuck you store your items in*\nYou may enter and exit the fort as you please now.\n");
+						eGnome2Happy;
+					}
+					else
+					{
+						printf("The gnome speaks:\nYou've come back to me empty handed, huh?\nI have no use for idiots like you.\n*His eyes start to glow red and they start shooting lasers at you*\n");
+						gaming = false;
+						whyNotGaming = exitPlayerDied;
+						break;
+					}
+				}
 			}
 			else
 			{
+				eGnome2Met = true;
 				printf("In a deep, startling voice the gnome speaks:\nSTOP! Who are you?!\n");
 				pinputt();
 				char *pname;
 				strcpy(pname, input);
 				strupr(pname);
-				printf("%s!?!?!?!?!", pname);
+				printf("%s!? That's a dumb fucking name dude. So, you gonna work for me?\n", pname);
+				pinputt();
+				
+				// Removing ? from the end of player's response	
+				{
+					int last = strlen(input) - 1;
+					if (input[last] == '?')
+					{
+						input[last] = '\0';
+					}
+				}
+
+				if (psaid("what") || psaid("what are you talking about") || psaid("what the fuck are you talking about"))
+				{
+					printf("Not so intelligent, are you? well... um, fuck you bitch.\n*The gnome chucks a miniature cardboard knife at you*\n");
+					gaming = false;
+					whyNotGaming = exitPlayerDied;
+					break;
+				}
+				else if (psaid("yes") || psaid("i will") || psaid("of course"))
+				{
+					printf("Good.\nNow take this shovel and dig up my bagel collection in the backyard, slave!\n");	
+				}
+				else if (psaid("no") || psaid("fuck you"))
+				{
+					printf("Defiance will get you nowhere son.\n*Gnome shoves a cardboard box full of 10-ton soap weights onto you*\n");
+					gaming = false;
+					whyNotGaming = exitPlayerDied;
+					break;
+				}
+				else
+				{
+					printf("...What? Get the fuck out of my face bitch, you have no use.\n*Gnome chucks soap at your eyes*\n");
+					gaming = false;
+					whyNotGaming = exitPlayerDied;
+					break;
+				}
+				addInventoryItem(itemShovel);
 			}
 		}
 		else
