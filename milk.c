@@ -11,10 +11,20 @@
 // Global Variables
 
 // Time
-time_t timeGameBegan, timeLawnEntered;
+time_t timeGameBegan, timeLawnEntered, timeMilkFell;
 
 // Events
-bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot, eGnome2Died, eMilkGot, eGlassGot, eMilkFalling, eFortEntered, eGnome2Happy, eGnome2Met;
+bool eGameStarted, eWindowOpen, eWoodDoorOpen, eSteelDoorOpen, eHoleOpen, eGnomeDied, eFridgeOpen, eTVOn, eDoorOpenerGot, eThisGuyDead, eGateOpen, eFenceBroken, eGapStairsSide, eStaredAtPainting, eSpeedrunning, eMeteorCrashed, eLawnZombDead, eTreeItemGot, eGnome2Died, eFortEntered, eGnome2Happy, eGnome2Met;
+
+// Complicated Events
+
+/* milkFallState - determines the state of falling milk
+ * 0 = milk hasn't fallen yet
+ * 1 = milk is falling
+ * 2 = milk has finished falling
+ * 3 = player failed to catch the milk
+ */
+unsigned short int milkFallState = 0;
 
 // Game
 bool gaming = true;
@@ -37,7 +47,9 @@ itemPlotholer = 4,
 itemSMedal = 5,
 itemMoney = 6,
 itemBagels = 7,
-itemShovel = 8
+itemShovel = 8,
+itemGlass = 9,
+itemMilkGlass = 10
 };
 const char *gmItemName[] = {
 "Nothing",				//1
@@ -48,7 +60,9 @@ const char *gmItemName[] = {
 "Spongebob Medal",			//5
 "One Million Dollars",
 "Bagel Collection",
-"Shovel"
+"Shovel",
+"Glass",
+"GLASS OF MILK"				//10
 };
 
 unsigned short int inventory[10];
@@ -318,6 +332,28 @@ int tryGlobalCommand(char *command)
 		else
 			return 0;
 	}
+	else if (strcmp(command, "drink milk") == 0)
+	{
+		if (hasInventoryItem(itemMilk))
+			printf("Woah woah woah are you some kind of uncivilized freak? We pour milk into glasses here before we drink them, thank you very much.\n");
+		else
+			printf("No.\n");
+		
+		return 1;
+	}
+	else if (strcmp(command, "drink glass of milk") == 0)
+	{
+		if (hasInventoryItem(itemMilkGlass))
+		{
+			printf("You drink milk.\n");
+			gaming = false;
+			whyNotGaming = exitGameWon;
+		}
+		else
+			printf("NO.\n");
+
+		return 1;
+	}
 	else if (strcmp(command, "") == 0)
 	{
 		printf("What was that? Speak up, son.\n");
@@ -550,6 +586,22 @@ void gmLoopBackyard()
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
+		else if (psaid("dig") && hasInventoryItem(itemShovel))
+		{
+			printf("That command is too straight-forward.\n");
+		}
+		else if (psaid("use shovel on dirt") && hasInventoryItem(itemShovel))
+		{
+			if (hasInventoryItem(itemBagels))
+			{
+				printf("You already did that.\n");
+			}
+			else
+			{
+				printf("You find the box fort gnome's bagels.\n");
+				addInventoryItem(itemBagels);
+			}
+		}
 		else if (psaid("search grass"))
 		{
 			printf("You find a note that reads:\nI've been constructing many devices my son must not be aware of. One of them is my genius door opening device, which I hid under his closet. He'll never find it, unless this note exposing all of my secrets for absolutely no reason somehow ends up in his hands.\nThe rest of the note is torn or soaked with water.\n");
@@ -583,8 +635,7 @@ void gmLoopBackyard()
 				printf("You tap the knocked over fence. All of a sudden, a huge FLASH OF LIGHT-Just kidding nothing happens.\n");
 			}
 			else
-			{
-			
+			{	
 				printf("You tap the fence and it topples over like dominoes. On the other side is a million dollars.\n");
 				eFenceBroken = true;
 			}
@@ -962,6 +1013,12 @@ void gmLoopFort()
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
+		else if (psaid("go through hall"))
+		{
+			printf("You make your way back to your front door.\n");
+			area = areaFrontDoor;
+			break;
+		}
 		else if (psaid("go through fort"))
 		{
 			if (eGnome2Died)
@@ -980,7 +1037,7 @@ void gmLoopFort()
 				}
 				else
 				{
-					printf("The gnome spots you and speaks:\nI NEVER SAID YOU COULD DO THAT!!!!!!!!!!\n*He ");
+					printf("The gnome spots you and speaks:\nI NEVER SAID YOU COULD DO THAT!!!!!!!!!!\n*He tackles you*\n");
 					gaming = false;
 					whyNotGaming = exitPlayerDied;		
 				}
@@ -1000,13 +1057,38 @@ void gmLoopFort()
 		}
 		else if (psaid("sneak past gnome"))
 		{
-			printf("You begin to crawl on the ground, trying your hardest to not make the floorboards creak, but before you know it, the gnome rappels down from the cardboard and stabs you, ending your mission to secure some good ass milk.\nHA! That's what you get for trying to have fun pursuing an interesting path in this game!\n");
-			gaming = false;
-			whyNotGaming = exitPlayerDied;
-			break;
+			if (eGnome2Died)
+			{
+				printf("He's dead.\n");
+			}
+			else
+			{
+				printf("You begin to crawl on the ground, trying your hardest to not make the floorboards creak, but before you know it, the gnome rappels down from the cardboard and stabs you, ending your mission to secure some good ass milk.\nHA! That's what you get for trying to have fun pursuing an interesting path in this game!\n");
+				gaming = false;
+				whyNotGaming = exitPlayerDied;
+				break;
+			}
+		}
+		else if (psaid("kill gnome"))
+		{
+			if (eGnome2Died)
+			{
+				printf("He's already dead.\n");
+			}
+			else
+			{
+				printf("He suddenly falls down dead. Quite epic if I do say so myself!\n");
+				eGnome2Died = true;
+			}
 		}
 		else if (psaid("talk to gnome"))
 		{
+			if (eGnome2Died)
+			{
+				printf("He's dead.\n");
+				continue;
+			}
+
 			if (eGnome2Met)
 			{
 				if (eGnome2Happy)
@@ -1018,7 +1100,7 @@ void gmLoopFort()
 					if (hasInventoryItem(itemBagels))
 					{
 						printf("The gnome speaks:\nMIIIIINE!!!!!!\n*He grabs the sack of bagels out of your backpack or whatever the fuck you store your items in*\nYou may enter and exit the fort as you please now.\n");
-						eGnome2Happy;
+						eGnome2Happy = true;
 					}
 					else
 					{
@@ -1089,6 +1171,199 @@ void gmLoopDiningRoom()
 	{
 		pinput();
 		if (tryGlobalCommand(input)){}
+		else if (psaid("go through fort"))
+		{
+			printf("You leave the dining room.\n");
+			area = areaFort;
+			break;
+		}
+		else if (psaid("search black hole"))
+		{
+			printf("J4N65DL9185D8N8XC\n");
+		}
+		else if (psaid("go through black hole"))
+		{
+			printf("You d i i i e e e i i e e e i AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.\n");
+			area = areaWHAT;
+			break;
+		}
+		else if (psaid("search tv"))
+		{
+			int num = rand() % 3;
+			switch (num)
+			{
+				case 0:
+				{
+					printf("OMG SPONGEBOB IS ON THE TV!?!?!\n");
+					if (!hasInventoryItem(itemSMedal))
+						addInventoryItem(itemSMedal);
+					break;
+				}
+				case 1:
+				{
+					printf("It's turned off???\n");
+					break;
+				}
+				case 2:
+				{
+					printf("There's a show playing where a bunch of gnomes arrange themselves into the words:\nL O O K   U N D E R   Y O U R   C L O S E T\nF O R\nThe tv just shut off again.\n");
+					break;
+				}
+			}
+		}
+		else if (psaid("turn on tv"))
+		{
+			printf("You go to turn on the tv and-WAIT... it's just turned on by itself again.\n");
+		}
+		else if (psaid("search fridge"))
+		{
+			if (eFridgeOpen)
+			{
+				if (hasInventoryItem(itemMilk))
+				{
+					printf("It's empty.\n");
+				}
+				else
+				{
+					printf("THERE'S MILK IN THERE OMG\n");
+				}
+			}
+			else
+				printf("It's closed, so you just stare at the fridge door.\n");
+		}
+		else if (psaid("search table"))
+		{
+			if (hasInventoryItem(itemGlass))
+			{
+				printf("There's nothing on it.\n");
+			}
+			else
+			{
+				printf("There's an empty glass on it.\n");
+			}
+		}
+		else if (psaid("get glass"))
+		{
+			if (hasInventoryItem(itemGlass))
+			{
+				printf("No.\n");
+			}
+			else
+			{
+				printf("You grab the glass.\n");
+				addInventoryItem(itemGlass);
+			}
+		}
+		else if (psaid("open fridge"))
+		{
+			if (eFridgeOpen)
+				printOpen("fridge");
+			else
+			{
+				printOpening("fridge");
+				eFridgeOpen = true;
+			}
+		}
+		else if (psaid("close fridge"))
+		{
+			if (eFridgeOpen)
+			{
+				printClosing("fridge");
+				eFridgeOpen = false;
+			}
+			else
+				printClosed("fridge");
+		}
+		else if (psaid("get milk"))
+		{
+			if (eFridgeOpen)
+			{
+				if (hasInventoryItem(itemMilk))
+				{
+					printf("You already have milk.\n");
+				}
+				else
+				{
+					printf("You grab the milk. That's fucking epic.\n");
+					addInventoryItem(itemMilk);
+				}
+			}
+			else
+				printf("You don't see any milk around here.\n");
+		}
+		else if (psaid("use milk on glass") || psaid("use glass on milk") || psaid("pour milk in glass"))
+		{
+			if (!hasInventoryItem(itemMilk))
+			{
+				printf("You don't have milk!?!?!?!\n");
+				continue;
+			}
+
+			if (!hasInventoryItem(itemGlass))
+			{
+				printf("YOU DON'T HAVE A GLASS!?!?!?!?!?!?\n");
+				continue;
+			}
+
+			switch (milkFallState)
+			{
+				case 0:
+				{
+					printf("Eager to drink some milk... YOU POUR THE MILK TOO QUICKLY AND DROP THE MILK!?!?!?!?\nType \"oh god save the milk\" to catch the milk before it hits the ground in approximately 6 seconds.\n");
+					milkFallState = 1;
+					timeMilkFell = time(NULL);
+					break;
+				}
+				case 1:
+				{
+					printf("THE MILK IS IN THE MIDDLE OF FALLING WTF WHY ARE YOU TRYING TO POUR IT STILL!?!?!?\n");
+					break;
+				}
+				case 2:
+				{
+					printf("You poured the milk into the glass slowly and carefully this time, and you were succesful. Now you have a glass of milk.\n");
+					addInventoryItem(itemMilkGlass);
+					break;
+				}
+				case 3:
+				{
+					printf("The milk has fallen, and it is no longer possible to construct a milk glass device out of it. This game, and your life, are over.\nBAD ENDING\n");
+					gaming = false;
+					whyNotGaming = exitPlayerDied;
+					break;
+				}
+			}
+		}
+		else if (psaid("oh god save the milk"))
+		{
+			switch (milkFallState)
+			{
+				case 0:
+				{
+					printf("That hasn't happened yet wtf?\n");
+					break;
+				}
+				case 1:
+				{
+					if (time(NULL) - timeMilkFell < 6)
+					{
+						printf("Y o u  s u c c e s s f u l l y   c a t c h   t h e   m i l k .\n");
+						milkFallState = 2;
+					}
+					else
+					{
+						printf("It's too late. The milk has fully fallen.\n");
+						milkFallState = 3;
+					}
+					break;
+				}
+				case 2:
+				{
+					printf("You just did that.\n");
+					break;
+				}
+			}
+		}
 		else
 		{
 			printUnknownCommand(input);
