@@ -1116,7 +1116,7 @@ void gmLoopFort()
 				eGnome2Met = true;
 				printf("In a deep, startling voice the gnome speaks:\nSTOP! Who are you?!\n");
 				pinputt();
-				char *pname;
+				char* pname = malloc(INPUT_SIZE + 1);
 				strcpy(pname, input);
 				strupr(pname);
 				printf("%s!? That's a dumb fucking name dude. So, you gonna work for me?\n", pname);
