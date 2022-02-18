@@ -1513,7 +1513,7 @@ void gmLoop()
 	}
 	
 	timeGameBegan = time(NULL);
-	area = areaFort;
+	area = areaBedroom;
 	
 	// Loop through areas of the world
 	while (gaming)
