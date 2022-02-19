@@ -223,7 +223,7 @@ void searchArea(unsigned short int area)
 		}
 		case areaLawn:
 		{
-			printf("You're standing in your lawn. There's a ravine where the street once was and a zombie that will reach you in about 60 seconds. There's also the front door to your house and a tree.");
+			printf("You're standing in your lawn. There's a ravine where the street once was and a zombie that will reach you in about 60 seconds. There's also the front door to your house, a tree, and a gate to the backyard.");
 			if (eMeteorCrashed)
 				printf(" And also a meteor.");
 			printf("\n");
@@ -231,7 +231,7 @@ void searchArea(unsigned short int area)
 		}
 		case areaDiningRoom:
 		{
-			printf("This is the only somewhat-nice looking room in your house, but still looks like a liminal space. There is a fridge, table, black hole, and TV.\nYou're pretty sure this is where the milk is.\n");
+			printf("This is the only somewhat-nice looking room in your house, but still looks like a liminal space. There is a fridge, table, black hole, box fort, and TV.\nYou're pretty sure this is where the milk is.\n");
 			break;
 		}
 		case areaFort:
@@ -241,7 +241,7 @@ void searchArea(unsigned short int area)
 				printf("that gnome you killed is on the verge of slipping from.");
 			else
 				printf("a lone gnome stands.");
-			printf("\n");
+			printf("\nThrough the fort is probably the dining room. Behind you is the hall you just went through.\n");
 			break;
 		}
 		default:
@@ -286,6 +286,7 @@ int tryGlobalCommand(char *command)
 		printf("get <object> - take a thing, duh\n");
 		printf("use <object> - use a thing, duh\n");
 		printf("use <object> on <object> - use a thing on a thing!\n");
+		printf("go through <object> - walk through a thing, like a door or hall\n");
 		printf("inventory - show what items you have\n");
 		printf("time - show the current time\n");
 		printf("clear - clear the screen\n");
@@ -822,7 +823,7 @@ void gmLoopHall()
 		}
 		else if (psaid("search stairs"))
 		{
-			printf("It's a black spiral staircase made of wood that leads to your front door.\n");
+			printf("It's a black spiral staircase made of wood that goes down. It leads to your front door.\n");
 		}
 		else if (psaid("go down stairs"))
 		{
@@ -855,6 +856,10 @@ void gmLoopFrontDoor()
 		else if (psaid("search front door"))
 		{
 			printf("It's broken.\n");
+		}
+		else if (psaid("kill zombie"))
+		{
+			printf("It's already dead.\n");
 		}
 		else if (psaid("search zombie"))
 		{
@@ -1120,7 +1125,9 @@ void gmLoopFort()
 				strcpy(pname, input);
 				strupr(pname);
 				printf("%s!? That's a dumb fucking name dude. So, you gonna work for me?\n", pname);
+				free(pname);
 				pinputt();
+
 				
 				// Removing ? from the end of player's response	
 				{
